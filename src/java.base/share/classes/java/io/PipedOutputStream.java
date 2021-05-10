@@ -49,7 +49,7 @@ public class PipedOutputStream extends OutputStream {
            more sophisticated.  Either using thread groups (but what about
            pipes within a thread?) or using finalization (but it may be a
            long time until the next GC). */
-    private PipedInputStream sink;
+    private volatile PipedInputStream sink;
 
     /**
      * Creates a piped output stream connected to the specified piped
