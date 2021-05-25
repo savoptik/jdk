@@ -34,12 +34,12 @@
 @implementation SliderAccessibility
 - (nullable NSString *)accessibilityLabel
 {
-    return [self accessibilityTitleAttribute];
+    return [super accessibilityLabel];
 }
 
 - (nullable id)accessibilityValue
 {
-    return [self accessibilityValueAttribute];
+    return [super accessibilityValue];
 }
 
 - (BOOL)accessibilityPerformIncrement

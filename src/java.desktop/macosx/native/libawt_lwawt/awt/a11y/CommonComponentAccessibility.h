@@ -26,7 +26,9 @@
 #ifndef JAVA_COMPONENT_ACCESSIBILITY
 #define JAVA_COMPONENT_ACCESSIBILITY
 
-#import "JavaComponentAccessibility.h"
+#include "jni.h"
+
+#import <AppKit/AppKit.h>
 #import "JavaAccessibilityUtilities.h"
 
 // these constants are duplicated in CAccessibility.java
@@ -35,14 +37,63 @@
 #define JAVA_AX_VISIBLE_CHILDREN (-3)
 // If the value is >=0, it's an index
 
-@interface CommonComponentAccessibility : JavaComponentAccessibility <NSAccessibilityElement> {
+@interface CommonComponentAccessibility : NSAccessibilityElement {
+    NSView *fView;
+    NSObject *fParent;
 
+    NSString *fNSRole;
+    NSString *fJavaRole;
+
+    jint fIndex;
+    jobject fAccessible;
+    jobject fComponent;
+
+    NSMutableDictionary *fActions;
+    NSMutableArray *fActionSElectors;
+    NSObject *fActionsLOCK;
 }
+
+@property(readonly) NSArray *actionSelectores;
+
+- (id)initWithParent:(NSObject*)parent withEnv:(JNIEnv *)env withAccessible:(jobject)accessible withIndex:(jint)index withView:(NSView *)view withJavaRole:(NSString *)javaRole;
+- (void)unregisterFromCocoaAXSystem;
+- (void)postValueChanged;
+- (void)postSelectedTextChanged;
+- (void)postSelectionChanged;
+- (void)postTitleChanged;
+- (BOOL)isEqual:(id)anObject;
+- (BOOL)isAccessibleWithEnv:(JNIEnv *)env forAccessible:(jobject)accessible;
+
++ (void)postFocusChanged:(id)message;
+
 + (void) initializeRolesMap;
-+ (JavaComponentAccessibility * _Nullable) getComponentAccessibility:(NSString * _Nonnull)role;
++ (CommonComponentAccessibility * _Nullable) getComponentAccessibility:(NSString * _Nonnull)role;
+
++ (NSArray*)childrenOfParent:(CommonComponentAccessibility *)parent withEnv:(JNIEnv *)env withChildrenCode:(NSInteger)whichChildren allowIgnored:(BOOL)allowIgnored;
++ (CommonComponentAccessibility *) createWithParent:(CommonComponentAccessibility *)parent accessible:(jobject)jaccessible role:(NSString *)javaRole index:(jint)index withEnv:(JNIEnv *)env withView:(NSView *)view;
++ (CommonComponentAccessibility *) createWithAccessible:(jobject)jaccessible role:(NSString *)role index:(jint)index withEnv:(JNIEnv *)env withView:(NSView *)view;
++ (CommonComponentAccessibility *) createWithAccessible:(jobject)jaccessible withEnv:(JNIEnv *)env withView:(NSView *)view;
+
+- (jobject)axContextWithEnv:(JNIEnv *)env;
+- (NSView*)view;
+- (NSWindow*)window;
+- (id)parent;
+- (NSString *)javaRole;
+
+- (BOOL)isMenu;
+- (BOOL)isSelected:(JNIEnv *)env;
+- (BOOL)isSelectable:(JNIEnv *)env;
+- (BOOL)isVisible:(JNIEnv *)env;
+
+- (NSArray *)accessibleChildrenWithChildCode:(NSInteger)childCode;
+
+- (NSDictionary*)getActions:(JNIEnv *)env;
+- (void)getActionsWithEnv:(JNIEnv *)env;
+- (BOOL)accessiblePerformAction:(NSAccessibilityActionName)actionName;
+- (BOOL)performAccessibleAction:(int)index;
+
 - (NSRect)accessibilityFrame;
 - (nullable id)accessibilityParent;
-- (BOOL)performAccessibleAction:(int)index;
 - (BOOL)isAccessibilityElement;
 @end
 

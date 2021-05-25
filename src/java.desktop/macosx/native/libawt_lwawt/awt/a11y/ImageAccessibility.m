@@ -31,7 +31,7 @@
 @implementation ImageAccessibility
 - (nullable NSString *)accessibilityLabel
 {
-    return [self accessibilityTitleAttribute];
+    return [super accessibilityLabel];
 }
 
 @end
