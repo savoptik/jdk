@@ -34,7 +34,7 @@
 
 - (NSString * _Nonnull)accessibilityRole
 {
-    return [self accessibilityRoleAttribute];
+    return [super accessibilityRole];
 }
 
 - (NSAccessibilityOrientation) accessibilityOrientation

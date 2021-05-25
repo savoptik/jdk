@@ -31,12 +31,22 @@
 @implementation ButtonAccessibility
 - (nullable NSString *)accessibilityLabel
 {
-    return [self accessibilityTitleAttribute];
+    return [super accessibilityLabel];
 }
 
 - (BOOL)accessibilityPerformPress
 {
     return [self performAccessibleAction:0];
+}
+
+- (NSRect)accessibilityFrame
+{
+    return [super accessibilityFrame];
+}
+
+- (id)accessibilityParent
+{
+    return [super accessibilityParent];
 }
 
 @end

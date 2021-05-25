@@ -34,12 +34,12 @@
 @implementation SpinboxAccessibility
 - (nullable NSString *)accessibilityLabel
 {
-    return [self accessibilityTitleAttribute];
+    return [super accessibilityLabel];
 }
 
 - (nullable id)accessibilityValue
 {
-    return [self accessibilityValueAttribute];
+    return [super accessibilityValue];
 }
 
 - (BOOL)accessibilityPerformIncrement
@@ -51,6 +51,16 @@
 - (BOOL)accessibilityPerformDecrement
 {
     return [self performAccessibleAction:DECREMENT];
+}
+
+- (NSRect)accessibilityFrame
+{
+    return [super accessibilityFrame];
+}
+
+- (id)accessibilityParent
+{
+    return [super accessibilityParent];
 }
 
 @end
