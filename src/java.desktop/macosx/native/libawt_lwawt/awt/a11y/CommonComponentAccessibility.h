@@ -72,6 +72,7 @@
 + (CommonComponentAccessibility * _Nullable) getComponentAccessibility:(NSString * _Nonnull)role andParent:(CommonComponentAccessibility * _Nonnull)parent;
 
 + (NSArray* _Nullable)childrenOfParent:(CommonComponentAccessibility* _Nonnull)parent withEnv:(JNIEnv _Nonnull * _Nonnull)env withChildrenCode:(NSInteger)whichChildren allowIgnored:(BOOL)allowIgnored;
++ (NSArray* _Nullable)childrenOfParent:(CommonComponentAccessibility* _Nonnull)parent withEnv:(JNIEnv _Nonnull * _Nonnull)env withChildrenCode:(NSInteger)whichChildren allowIgnored:(BOOL)allowIgnored recursive:(BOOL)recursive;
 + (CommonComponentAccessibility* _Nullable) createWithParent:(CommonComponentAccessibility* _Nullable)parent accessible:(jobject _Nonnull)jaccessible role:(NSString* _Nonnull)javaRole index:(jint)index withEnv:(JNIEnv _Nonnull * _Nonnull)env withView:(NSView* _Nonnull)view;
 + (CommonComponentAccessibility* _Nullable) createWithAccessible:(jobject _Nonnull)jaccessible role:(NSString* _Nonnull)role index:(jint)index withEnv:(JNIEnv _Nonnull * _Nonnull)env withView:(NSView* _Nonnull)view;
 + (CommonComponentAccessibility* _Nullable) createWithAccessible:(jobject _Nonnull)jaccessible withEnv:(JNIEnv _Nonnull * _Nonnull)env withView:(NSView* _Nonnull)view;
@@ -80,6 +81,10 @@
 // but performs a different NSAccessibilityRole of a table cell, or a list row, or tree row,
 // and we need to create an element whose role corresponds to the role in Java.
 + (CommonComponentAccessibility* _Nullable) createWithParent:(CommonComponentAccessibility* _Nullable)parent accessible:(jobject _Nonnull)jaccessible role:(NSString* _Nonnull)javaRole index:(jint)index withEnv:(JNIEnv _Nonnull * _Nonnull)env withView:(NSView* _Nonnull)view isWrapped:(BOOL)wrapped;
+
+// The current parameter is used to bypass the check for an item's index on the parent so that the item is created. This is necessary,
+// for example, for AccessibleJTreeNode, whose currentComponent has index -1
++ (CommonComponentAccessibility* _Nullable) createWithAccessible:(jobject _Nonnull)jaccessible withEnv:(JNIEnv _Nonnull * _Nonnull)env withView:(NSView* _Nonnull)view isCurrent:(BOOL)current;
 
 - (jobject _Nullable)axContextWithEnv:(JNIEnv _Nonnull * _Nonnull)env;
 - (NSView* _Nonnull)view;

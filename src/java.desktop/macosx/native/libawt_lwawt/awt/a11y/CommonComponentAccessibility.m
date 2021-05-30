@@ -48,6 +48,12 @@ static jmethodID jm_getChildrenAndRoles = NULL;
     GET_STATIC_METHOD_RETURN(jm_getChildrenAndRoles, sjc_CAccessibility, "getChildrenAndRoles",\
                       "(Ljavax/accessibility/Accessible;Ljava/awt/Component;IZ)[Ljava/lang/Object;", ret);
 
+static jmethodID jm_getChildrenAndRolesRecursive = NULL;
+#define GET_CHILDRENANDROLESRECURSIVE_METHOD_RETURN(ret) \
+    GET_CACCESSIBILITY_CLASS_RETURN(ret); \
+    GET_STATIC_METHOD_RETURN(jm_getChildrenAndRolesRecursive, sjc_CAccessibility, "getChildrenAndRolesRecursive",\
+                      "(Ljavax/accessibility/Accessible;Ljava/awt/Component;IZI)[Ljava/lang/Object;", ret);
+
 static jmethodID sjm_getAccessibleComponent = NULL;
 #define GET_ACCESSIBLECOMPONENT_STATIC_METHOD_RETURN(ret) \
     GET_CACCESSIBILITY_CLASS_RETURN(ret); \
@@ -113,7 +119,7 @@ static jobject sAccessibilityClass = NULL;
     /*
      * Here we should keep all the mapping between the accessibility roles and implementing classes
      */
-    rolesMap = [[NSMutableDictionary alloc] initWithCapacity:36];
+    rolesMap = [[NSMutableDictionary alloc] initWithCapacity:37];
 
     [rolesMap setObject:@"ButtonAccessibility" forKey:@"pushbutton"];
     [rolesMap setObject:@"ImageAccessibility" forKey:@"icon"];
@@ -133,6 +139,7 @@ static jobject sAccessibilityClass = NULL;
     [rolesMap setObject:@"ComboBoxAccessibility" forKey:@"combobox"];
     [rolesMap setObject:@"TabGroupAccessibility" forKey:@"pagetablist"];
     [rolesMap setObject:@"ListAccessibility" forKey:@"list"];
+    [rolesMap setObject:@"OutlineAccessibility" forKey:@"tree"];
 
     /*
      * All the components below should be ignored by the accessibility subsystem,
@@ -158,9 +165,10 @@ static jobject sAccessibilityClass = NULL;
     [rolesMap setObject:IgnoreClassName forKey:@"viewport"];
     [rolesMap setObject:IgnoreClassName forKey:@"window"];
 
-    rowRolesMapForParent = [[NSMutableDictionary alloc] initWithCapacity:1];
+    rowRolesMapForParent = [[NSMutableDictionary alloc] initWithCapacity:2];
 
     [rowRolesMapForParent setObject:@"ListRowAccessibility" forKey:@"ListAccessibility"];
+    [rowRolesMapForParent setObject:@"OutlineRowAccessibility" forKey:@"OutlineAccessibility"];
 
     /*
      * Initialize CAccessibility instance
@@ -388,19 +396,33 @@ static jobject sAccessibilityClass = NULL;
 
 + (NSArray *)childrenOfParent:(CommonComponentAccessibility *)parent withEnv:(JNIEnv *)env withChildrenCode:(NSInteger)whichChildren allowIgnored:(BOOL)allowIgnored
 {
+    return [CommonComponentAccessibility childrenOfParent:parent withEnv:env withChildrenCode:whichChildren allowIgnored:allowIgnored recursive:NO];
+}
+
++ (NSArray *)childrenOfParent:(CommonComponentAccessibility *)parent withEnv:(JNIEnv *)env withChildrenCode:(NSInteger)whichChildren allowIgnored:(BOOL)allowIgnored recursive:(BOOL)recursive
+{
     if (parent->fAccessible == NULL) return nil;
-    GET_CHILDRENANDROLES_METHOD_RETURN(nil);
-    jobjectArray jchildrenAndRoles = (jobjectArray)(*env)->CallStaticObjectMethod(env, sjc_CAccessibility, jm_getChildrenAndRoles,
-                  parent->fAccessible, parent->fComponent, whichChildren, allowIgnored);
-    CHECK_EXCEPTION();
+    jobjectArray jchildrenAndRoles = NULL;
+    if (recursive) {
+        GET_CHILDRENANDROLESRECURSIVE_METHOD_RETURN(nil);
+        jchildrenAndRoles = (jobjectArray)(*env)->CallStaticObjectMethod(env, sjc_CAccessibility, jm_getChildrenAndRolesRecursive,
+                      parent->fAccessible, parent->fComponent, whichChildren, allowIgnored, 1);
+        CHECK_EXCEPTION();
+    } else {
+        GET_CHILDRENANDROLES_METHOD_RETURN(nil);
+        jchildrenAndRoles = (jobjectArray)(*env)->CallStaticObjectMethod(env, sjc_CAccessibility, jm_getChildrenAndRoles,
+                      parent->fAccessible, parent->fComponent, whichChildren, allowIgnored);
+        CHECK_EXCEPTION();
+    }
     if (jchildrenAndRoles == NULL) return nil;
 
     jsize arrayLen = (*env)->GetArrayLength(env, jchildrenAndRoles);
-    NSMutableArray *children = [NSMutableArray arrayWithCapacity:arrayLen/2]; //childrenAndRoles array contains two elements (child, role) for each child
+    NSMutableArray *children = [NSMutableArray arrayWithCapacity:(recursive ? arrayLen/3 : arrayLen/2)]; //childrenAndRoles array contains two elements (child, role) for each child
 
     NSInteger i;
     NSUInteger childIndex = (whichChildren >= 0) ? whichChildren : 0; // if we're getting one particular child, make sure to set its index correctly
-    for(i = 0; i < arrayLen; i+=2)
+    int inc = recursive ? 3 : 2;
+    for(i = 0; i < arrayLen; i+=inc)
     {
         jobject /* Accessible */ jchild = (*env)->GetObjectArrayElement(env, jchildrenAndRoles, i);
         jobject /* String */ jchildJavaRole = (*env)->GetObjectArrayElement(env, jchildrenAndRoles, i+1);
@@ -417,6 +439,19 @@ static jobject sAccessibilityClass = NULL;
 
         CommonComponentAccessibility *child = [self createWithParent:parent accessible:jchild role:childJavaRole index:childIndex withEnv:env withView:parent->fView];
 
+        if ( recursive &&[child respondsToSelector:@selector(setAccessibleLevel)]) {
+            jobject jLevel = (*env)->GetObjectArrayElement(env, jchildrenAndRoles, i+2);
+            NSString *sLevel = nil;
+            if (jLevel != NULL) {
+                sLevel = JavaStringToNSString(env, jLevel);
+                if (sLevel != nil) {
+                    int level = sLevel.intValue;
+                    [child setAccessibleLevel:level];
+                }
+                (*env)->DeleteLocalRef(env, jLevel);
+            }
+        }
+
         (*env)->DeleteLocalRef(env, jchild);
         (*env)->DeleteLocalRef(env, jchildJavaRole);
 
@@ -430,12 +465,17 @@ static jobject sAccessibilityClass = NULL;
 
 + (CommonComponentAccessibility *) createWithAccessible:(jobject)jaccessible withEnv:(JNIEnv *)env withView:(NSView *)view
 {
+    return [CommonComponentAccessibility createWithAccessible:jaccessible withEnv:env withView:view isCurrent:NO];
+}
+
++ (CommonComponentAccessibility *) createWithAccessible:(jobject)jaccessible withEnv:(JNIEnv *)env withView:(NSView *)view isCurrent:(BOOL)current
+{
     GET_ACCESSIBLEINDEXINPARENT_STATIC_METHOD_RETURN(nil);
     CommonComponentAccessibility *ret = nil;
     jobject jcomponent = [(AWTView *)view awtComponent:env];
     jint index = (*env)->CallStaticIntMethod(env, sjc_CAccessibility, sjm_getAccessibleIndexInParent, jaccessible, jcomponent);
     CHECK_EXCEPTION();
-    if (index >= 0) {
+    if (index >= 0 || current) {
       NSString *javaRole = getJavaRole(env, jaccessible, jcomponent);
       ret = [self createWithAccessible:jaccessible role:javaRole index:index withEnv:env withView:view];
     }
@@ -447,6 +487,7 @@ static jobject sAccessibilityClass = NULL;
 {
     return [self createWithParent:nil accessible:jaccessible role:javaRole index:index withEnv:env withView:view];
 }
+
 + (CommonComponentAccessibility *) createWithParent:(CommonComponentAccessibility *)parent accessible:(jobject)jaccessible role:(NSString *)javaRole index:(jint)index withEnv:(JNIEnv *)env withView:(NSView *)view
 {
     return [CommonComponentAccessibility createWithParent:parent accessible:jaccessible role:javaRole index:index withEnv:env withView:view isWrapped:NO];
@@ -566,7 +607,8 @@ static jobject sAccessibilityClass = NULL;
     NSArray *children = [CommonComponentAccessibility childrenOfParent:self
                                                     withEnv:env
                                                     withChildrenCode:childCode
-                                                    allowIgnored:[[self accessibilityRole] isEqualToString:NSAccessibilityListRole]];
+                                                    allowIgnored:([[self accessibilityRole] isEqualToString:NSAccessibilityListRole] || [[self accessibilityRole] isEqualToString:NSAccessibilityOutlineRole])
+                                                             recursive:[[self accessibilityRole] isEqualToString:NSAccessibilityOutlineRole]];
 
     NSArray *value = nil;
     if ([children count] > 0) {
