@@ -68,11 +68,17 @@
 
 + (void) initializeRolesMap;
 + (CommonComponentAccessibility * _Nullable) getComponentAccessibility:(NSString * _Nonnull)role;
++ (CommonComponentAccessibility *) getComponentAccessibility:(NSString *)role andParent:(CommonComponentAccessibility *)parent;
 
 + (NSArray*)childrenOfParent:(CommonComponentAccessibility *)parent withEnv:(JNIEnv *)env withChildrenCode:(NSInteger)whichChildren allowIgnored:(BOOL)allowIgnored;
 + (CommonComponentAccessibility *) createWithParent:(CommonComponentAccessibility *)parent accessible:(jobject)jaccessible role:(NSString *)javaRole index:(jint)index withEnv:(JNIEnv *)env withView:(NSView *)view;
 + (CommonComponentAccessibility *) createWithAccessible:(jobject)jaccessible role:(NSString *)role index:(jint)index withEnv:(JNIEnv *)env withView:(NSView *)view;
 + (CommonComponentAccessibility *) createWithAccessible:(jobject)jaccessible withEnv:(JNIEnv *)env withView:(NSView *)view;
+
+// If the isWraped parameter is true, then the object passed as a parent was created based on the same java component,
+// but performs a different NSAccessibilityRole of a table cell, or a list row, or tree row,
+// and we need to create an element whose role corresponds to the role in Java.
++ (CommonComponentAccessibility *) createWithParent:(CommonComponentAccessibility *)parent accessible:(jobject)jaccessible role:(NSString *)javaRole index:(jint)index withEnv:(JNIEnv *)env withView:(NSView *)view isWrapped:(BOOL)wrapped;
 
 - (jobject)axContextWithEnv:(JNIEnv *)env;
 - (NSView*)view;
