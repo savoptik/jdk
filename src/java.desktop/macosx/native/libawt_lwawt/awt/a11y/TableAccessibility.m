@@ -139,12 +139,12 @@ static jmethodID sjm_getAccessibleName = NULL;
     int rowCount = [self accessibilityRowCount];
     NSMutableArray *children = [NSMutableArray arrayWithCapacity:rowCount];
     for (int i = 0; i < rowCount; i++) {
-        [children addObject:[[TableRowAccessibility alloc] initWithParent:self
+        [children addObject:[[[[TableRowAccessibility alloc] initWithParent:self
                                                                       withEnv:[ThreadUtilities getJNIEnv]
                                                                withAccessible:NULL
                                                                     withIndex:i
                                                                      withView:[self view]
-                                                                 withJavaRole:JavaAccessibilityIgnore]];
+                                                                 withJavaRole:JavaAccessibilityIgnore] retain] autorelease]];
     }
     return [NSArray arrayWithArray:children];
 }
@@ -154,12 +154,12 @@ static jmethodID sjm_getAccessibleName = NULL;
     NSArray<NSNumber *> *selectedRowIndexses = [self getTableSelectedInfo:sun_lwawt_macosx_CAccessibility_JAVA_AX_ROWS];
     NSMutableArray *children = [NSMutableArray arrayWithCapacity:[selectedRowIndexses count]];
     for (NSNumber *index in selectedRowIndexses) {
-        [children addObject:[[TableRowAccessibility alloc] initWithParent:self
+        [children addObject:[[[[TableRowAccessibility alloc] initWithParent:self
                                                                       withEnv:[ThreadUtilities getJNIEnv]
                                                                withAccessible:NULL
                                                                     withIndex:index.unsignedIntValue
                                                                      withView:[self view]
-                                                                 withJavaRole:JavaAccessibilityIgnore]];
+                                                                 withJavaRole:JavaAccessibilityIgnore] retain] autorelease]];
     }
     return [NSArray arrayWithArray:children];
 }
@@ -184,12 +184,12 @@ static jmethodID sjm_getAccessibleName = NULL;
     int colCount = [self accessibilityColumnCount];
     NSMutableArray *columns = [NSMutableArray arrayWithCapacity:colCount];
     for (int i = 0; i < colCount; i++) {
-        [columns addObject:[[ColumnAccessibility alloc] initWithParent:self
+        [columns addObject:[[[[ColumnAccessibility alloc] initWithParent:self
                                                                    withEnv:[ThreadUtilities getJNIEnv]
                                                             withAccessible:NULL
                                                                  withIndex:i
                                                                   withView:self->fView
-                                                              withJavaRole:JavaAccessibilityIgnore]];
+                                                              withJavaRole:JavaAccessibilityIgnore] retain] autorelease]];
     }
     return [NSArray arrayWithArray:columns];
 }
@@ -199,12 +199,12 @@ static jmethodID sjm_getAccessibleName = NULL;
     NSArray<NSNumber *> *indexes = [self getTableSelectedInfo:sun_lwawt_macosx_CAccessibility_JAVA_AX_COLS];
     NSMutableArray *columns = [NSMutableArray arrayWithCapacity:[indexes count]];
     for (NSNumber *i in indexes) {
-        [columns addObject:[[ColumnAccessibility alloc] initWithParent:self
+        [columns addObject:[[[[ColumnAccessibility alloc] initWithParent:self
                                                                    withEnv:[ThreadUtilities getJNIEnv]
                                                             withAccessible:NULL
                                                                  withIndex:i.unsignedIntValue
                                                                   withView:self->fView
-                                                              withJavaRole:JavaAccessibilityIgnore]];
+                                                              withJavaRole:JavaAccessibilityIgnore] retain] autorelease]];
     }
     return [NSArray arrayWithArray:columns];
 }
