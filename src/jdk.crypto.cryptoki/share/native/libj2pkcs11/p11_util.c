@@ -302,9 +302,11 @@ void freeCKAttributeArray(CK_ATTRIBUTE_PTR attrPtr, int len) {
         for (i=0; i<len; i++) {
             if (attrPtr[i].pValue != NULL_PTR) {
                 free(attrPtr[i].pValue);
+                attrPtr[i].pValue = NULL_PTR;
             }
         }
         free(attrPtr);
+        attrPtr = NULL_PTR;
     }
 }
 
