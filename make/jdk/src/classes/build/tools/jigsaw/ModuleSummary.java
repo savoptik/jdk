@@ -71,6 +71,7 @@ public class ModuleSummary {
                     break;
                 case "--root":
                     roots.add(args[i++]);
+                    break;
                 default:
                     System.err.println(USAGE);
                     System.exit(-1);
