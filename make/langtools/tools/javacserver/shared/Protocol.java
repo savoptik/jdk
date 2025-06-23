@@ -51,6 +51,9 @@ public class Protocol {
     public static String[] readCommand(BufferedReader in) throws IOException {
         // Read argument array
         int n = Integer.parseInt(in.readLine());
+        if (n < 0) {
+            throw new IOException("Array size is negative");
+        }
         String[] args = new String[n];
         for (int i = 0; i < n; i++) {
             args[i] = in.readLine();
