@@ -416,6 +416,11 @@ public class UnicodeSpec {
         }
         result = new UnicodeSpec[list.size()];
         list.toArray(result);
+        try {
+            f.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         return result;
     }
 
