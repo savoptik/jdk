@@ -769,7 +769,7 @@ public class CachedRowSetWriter implements TransactionalWriter, Serializable {
                 * do updations properly i.e there is a conflict in database
                 * versus what is in CachedRowSet for this particular row.
                 **/
-
+                 pstmt.close();
                  return false;
 
             } else {
