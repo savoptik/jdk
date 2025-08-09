@@ -552,8 +552,7 @@ public class XMLEntityStorage {
             uri = new URI(base, id);
         }
         catch (Exception e) {
-            // let it go through
-
+            System.err.println("Error in URI: " + e.getMessage());
         }
 
         if (uri == null) {
