@@ -143,6 +143,8 @@ bool ShenandoahPhaseTimings::is_root_work_phase(Phase phase) {
 }
 
 void ShenandoahPhaseTimings::set_cycle_data(Phase phase, double time, bool should_aggregate) {
+  if ((phase > 0) && (phase < _num_phases)) return;
+
   const double cycle_data = _cycle_data[phase];
   if (should_aggregate) {
     _cycle_data[phase] = (cycle_data == uninitialized()) ? time :  (cycle_data + time);
