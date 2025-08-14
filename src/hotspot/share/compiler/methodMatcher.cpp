@@ -383,6 +383,7 @@ void MethodMatcher::print_base(outputStream* st) {
 }
 
 BasicMatcher* BasicMatcher::parse_method_pattern(char* line, const char*& error_msg, bool expect_trailing_chars) {
+  assert(line != nullptr, "line Must Not Be Null");
   assert(error_msg == nullptr, "Don't call here with error_msg already set");
   BasicMatcher* bm = new BasicMatcher();
   MethodMatcher::parse_method_pattern(line, error_msg, bm);
